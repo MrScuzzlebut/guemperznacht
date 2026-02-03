@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: url('/background-gz.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Eventtitel-Farbverlauf wie Flyer: links weiss, rechts mittleres Blau */
+@layer utilities {
+  .title-gradient {
+    background: linear-gradient(to right, #FFFFFF 0%, #E8F4FC 30%, #4A7A9E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .ornament-border {
+    border-image: repeating-linear-gradient(
+      90deg,
+      #D4AF37 0px,
+      #D4AF37 10px,
+      transparent 10px,
+      transparent 20px
+    ) 1;
+  }
+}
