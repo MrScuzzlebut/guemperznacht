@@ -8,15 +8,39 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [showSuccess, setShowSuccess] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     const redirectStatus = searchParams.get('redirect_status')
-    // Nur bei erfolgreicher Zahlung Success anzeigen; sonst zurück zum Formular
+    const paymentIntent = searchParams.get('payment_intent')
+
     if (redirectStatus !== 'succeeded') {
       router.replace('/')
       return
     }
-    setShowSuccess(true)
+
+    // Anmeldung aus Zahlungs-Metadaten in Google Sheets speichern (funktioniert auch nach Redirect)
+    if (!paymentIntent) {
+      setShowSuccess(true)
+      return
+    }
+
+    fetch(`/api/complete-registration?payment_intent=${encodeURIComponent(paymentIntent)}`)
+      .then((res) => {
+        if (res.ok) {
+          setShowSuccess(true)
+          setSaveError(null)
+        } else {
+          return res.json().then((data) => {
+            setSaveError(data.error || 'Fehler beim Speichern')
+            setShowSuccess(true)
+          })
+        }
+      })
+      .catch(() => {
+        setSaveError('Fehler beim Speichern der Anmeldung')
+        setShowSuccess(true)
+      })
   }, [searchParams, router])
 
   if (!showSuccess) {
@@ -98,6 +122,12 @@ function SuccessContent() {
             Aline, Dominique, Yannick & Moritz
           </p>
         </div>
+
+        {saveError && (
+          <p className="text-red-600 text-sm font-sans mb-4">
+            Zahlung war erfolgreich. Beim Speichern in die Liste ist ein Fehler aufgetreten – bitte kontaktiere uns.
+          </p>
+        )}
 
         {/* Button – Text blau */}
         <button

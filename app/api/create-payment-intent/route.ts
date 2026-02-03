@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { amount, currency, numberOfParticipants } = await request.json()
+    const body = await request.json()
+    const { amount, currency, numberOfParticipants, people, totalAmount } = body
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -31,16 +32,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create payment intent with metadata about number of participants
+    // Metadata für Google Sheets: bei Redirect fehlt sonst die Anmeldung (max 500 Zeichen pro Key)
+    const metadata: Record<string, string> = {
+      numberOfParticipants: (numberOfParticipants ?? people?.length ?? 1)?.toString(),
+      totalAmount: String(totalAmount ?? 0),
+    }
+    if (people && Array.isArray(people)) {
+      people.forEach((p: Record<string, string>, i: number) => {
+        const json = JSON.stringify({
+          vorname: p.vorname || '',
+          name: p.name || '',
+          tel: p.tel || '',
+          email: p.email || '',
+          option: p.option || '',
+          allergien: p.allergien || '',
+        })
+        if (json.length <= 500) metadata[`p${i}`] = json
+      })
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: currency || 'chf',
       automatic_payment_methods: {
         enabled: true,
       },
-      metadata: {
-        numberOfParticipants: numberOfParticipants?.toString() || '1',
-      },
+      metadata,
     })
 
     return NextResponse.json({

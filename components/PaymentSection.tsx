@@ -49,16 +49,18 @@ export default function PaymentSection({
         return
       }
 
-      // Create payment intent with number of participants
+      // Create payment intent inkl. Anmeldedaten in Metadata (für Redirect-Fall)
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to cents
+          amount: Math.round(amount * 100),
           currency: 'chf',
           numberOfParticipants: people.length,
+          people,
+          totalAmount: amount,
         }),
       })
 
@@ -85,7 +87,8 @@ export default function PaymentSection({
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        onPaymentSuccess(paymentIntent.id)
+        // Immer zur Success-Seite mit payment_intent → dort wird complete-registration aufgerufen
+        window.location.href = `/success?payment_intent=${paymentIntent.id}&redirect_status=succeeded`
       }
     } catch (err) {
       setPaymentError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.')
