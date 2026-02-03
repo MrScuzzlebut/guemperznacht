@@ -8,7 +8,7 @@ if (!stripeSecretKey) {
 }
 
 const stripe = stripeSecretKey
-  ? new Stripe(stripeSecretKey)
+  ? new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' })
   : null
 
 export async function POST(request: NextRequest) {
