@@ -1,9 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const paymentIntent = searchParams.get('payment_intent')
@@ -88,5 +89,23 @@ export default function SuccessPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+function SuccessFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl border-4 border-zunft-teal-DEFAULT p-8 max-w-2xl w-full mx-4 text-center">
+        <p className="text-[#2E5077] font-sans">Wird geladen...</p>
+      </div>
+    </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<SuccessFallback />}>
+      <SuccessContent />
+    </Suspense>
   )
 }
