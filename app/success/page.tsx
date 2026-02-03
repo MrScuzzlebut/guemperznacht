@@ -1,14 +1,33 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const paymentIntent = searchParams.get('payment_intent')
-  const paymentIntentClientSecret = searchParams.get('payment_intent_client_secret')
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  useEffect(() => {
+    const redirectStatus = searchParams.get('redirect_status')
+    // Nur bei erfolgreicher Zahlung Success anzeigen; sonst zurück zum Formular
+    if (redirectStatus !== 'succeeded') {
+      router.replace('/')
+      return
+    }
+    setShowSuccess(true)
+  }, [searchParams, router])
+
+  if (!showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl border-4 border-zunft-teal-DEFAULT p-8 max-w-2xl w-full mx-4 text-center">
+          <p className="text-[#2E5077] font-sans">Wird geladen...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
