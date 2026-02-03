@@ -68,7 +68,7 @@ export default function PersonForm({ person, onChange }: PersonFormProps) {
         <select
           required
           value={person.option}
-          onChange={(e) => onChange({ option: e.target.value })}
+          onChange={(e) => onChange({ option: e.target.value as PersonData['option'] })}
           className="w-full px-4 py-2 border-2 border-zunft-teal-light rounded-lg focus:ring-2 focus:ring-zunft-teal-DEFAULT focus:border-zunft-teal-DEFAULT bg-white/95 text-gray-900 font-sans text-base"
         >
           <option value="">Bitte wählen...</option>
