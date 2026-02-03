@@ -7,6 +7,7 @@ if (!stripeSecretKey) {
   console.error('⚠️ STRIPE_SECRET_KEY fehlt in der Umgebung!')
 }
 
+// stripe@13 requires apiVersion '2023-08-16'
 const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, { apiVersion: '2023-08-16' })
   : null
