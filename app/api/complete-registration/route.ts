@@ -28,22 +28,36 @@ export async function GET(request: NextRequest) {
     }
 
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    console.log('Retrieved PaymentIntent:', paymentIntentId, 'status:', paymentIntent.status)
+    console.log('Metadata:', JSON.stringify(paymentIntent.metadata))
+
     if (paymentIntent.status !== 'succeeded') {
       return NextResponse.json(
-        { error: 'Zahlung nicht erfolgreich' },
+        { error: 'Zahlung nicht erfolgreich', status: paymentIntent.status },
         { status: 400 }
       )
     }
 
     const meta = paymentIntent.metadata || {}
-    const totalAmount = Number(meta.totalAmount) || 0
+
+    // Verhindere doppelte Verarbeitung: Prüfe ob bereits gespeichert
+    if (meta.saved === 'true') {
+      console.log('PaymentIntent already processed, skipping')
+      return NextResponse.json({ success: true, alreadyProcessed: true })
+    }
+
     const n = parseInt(meta.numberOfParticipants || '0', 10)
+    console.log('Parsed metadata:', { numberOfParticipants: n })
+
     if (n === 0) {
       return NextResponse.json(
-        { error: 'Keine Anmeldedaten in Zahlung gefunden' },
+        { error: 'Keine Anmeldedaten in Zahlung gefunden', metadata: meta },
         { status: 400 }
       )
     }
+
+    // Preis pro Person (170.-)
+    const PRICE_PER_PERSON = 170
 
     const rows: (string | number)[][] = []
     for (let i = 0; i < n; i++) {
@@ -60,7 +74,7 @@ export async function GET(request: NextRequest) {
           person.email || '',
           person.option || '',
           person.allergien || '',
-          totalAmount,
+          PRICE_PER_PERSON,
           'Bezahlt',
         ])
       } catch {
@@ -95,6 +109,15 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       throw new Error(`Google Sheets: ${response.status} ${responseText}`)
+    }
+
+    // Markiere PaymentIntent als verarbeitet, um Duplikate zu verhindern
+    try {
+      await stripe.paymentIntents.update(paymentIntentId, {
+        metadata: { ...meta, saved: 'true' },
+      })
+    } catch (updateErr) {
+      console.warn('Could not mark PaymentIntent as saved:', updateErr)
     }
 
     return NextResponse.json({ success: true, saved: rows.length })

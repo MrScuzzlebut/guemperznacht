@@ -86,10 +86,26 @@ export default function PaymentSection({
         return
       }
 
+      // Debug: log payment intent status
+      console.log('Payment result:', { paymentIntent, status: paymentIntent?.status })
+
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Immer zur Success-Seite mit payment_intent → dort wird complete-registration aufgerufen
+        // Zur Success-Seite mit payment_intent → dort wird complete-registration aufgerufen
         window.location.href = `/success?payment_intent=${paymentIntent.id}&redirect_status=succeeded`
+        return
       }
+
+      // Wenn status nicht 'succeeded' ist (z.B. requires_action), aber kein Fehler kam,
+      // dann hat Stripe selbst einen Redirect gemacht (3D Secure etc.)
+      // In dem Fall kommt der User über return_url zurück
+      if (!paymentIntent) {
+        // Kein paymentIntent = Stripe hat redirected, nichts weiter tun
+        return
+      }
+
+      // Unerwarteter Status
+      console.warn('Unerwarteter PaymentIntent Status:', paymentIntent.status)
+      setPaymentError(`Zahlung in unerwartetem Status: ${paymentIntent.status}`)
     } catch (err) {
       setPaymentError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.')
       console.error(err)

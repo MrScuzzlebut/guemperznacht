@@ -14,7 +14,12 @@ function SuccessContent() {
     const redirectStatus = searchParams.get('redirect_status')
     const paymentIntent = searchParams.get('payment_intent')
 
-    if (redirectStatus !== 'succeeded') {
+    // Debug logging
+    console.log('Success page params:', { redirectStatus, paymentIntent })
+
+    // Wenn kein redirect_status oder nicht succeeded, zurück zum Formular
+    if (!redirectStatus || redirectStatus !== 'succeeded') {
+      console.log('Redirecting to / because redirect_status is:', redirectStatus)
       router.replace('/')
       return
     }
